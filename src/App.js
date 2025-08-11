@@ -3,21 +3,26 @@ import "./App.css";
 import ListOfNotes from "./ListOfNotes";
 import Note from "./Note";
 import Header from "./Header";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./Firebase";
 
 function App() {
   const [notes, setNotes] = useState([]);
-  const maxTitleLength = 30; // Maximum characters for title
+  const maxTitleLength = 50;
   const maxContentLength = 250;
 
-  function addNote(newNote) {
+  async function addNote(newNote) {
     if (
       newNote.content.trim() &&
       newNote.title.length <= maxTitleLength &&
       newNote.content.length <= maxContentLength
     ) {
-      setNotes((prevNotes) => {
-        return [...prevNotes, newNote];
-      });
+      try {
+        const docRef = await addDoc(collection(db, "notes"), newNote);
+        setNotes((prevNotes) => [...prevNotes, { ...newNote, id: docRef.id }]);
+      } catch (error) {
+        console.log("something is wrong", error);
+      }
     } else {
       alert("Note exceeds maximum allowed characters!");
     }
@@ -39,8 +44,8 @@ function App() {
         ? notes.map((noteItem, index) => {
             return (
               <Note
-                key={index}
-                id={index}
+                key={noteItem.id}
+                id={noteItem.id}
                 title={noteItem.title}
                 content={noteItem.content}
                 deleteItem={addDelete}
