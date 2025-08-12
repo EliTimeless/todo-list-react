@@ -2,19 +2,21 @@ import React from "react";
 import "./App.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function Note(props) {
-  function handleClick() {
-    props.deleteItem(props.id);
+function Note({ id, title, content, deleteItem }) {
+  function handleDelete() {
+    if (window.confirm("Do you really want to delete this note?")) {
+      deleteItem(id);
+    }
   }
 
   return (
     <div>
       <div className="itemNote">
         <div className="item">
-          <h3>{props.title}</h3>
-          <p>{props.content}</p>
+          <h3>{title}</h3>
+          <p>{content}</p>
         </div>
-        <button className="deleteButton" onClick={handleClick}>
+        <button className="deleteButton" onClick={handleDelete}>
           <DeleteIcon />
         </button>
       </div>

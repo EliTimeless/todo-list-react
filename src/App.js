@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import ListOfNotes from "./ListOfNotes";
 import Note from "./Note";
 import Header from "./Header";
-import { collection, addDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  deleteDoc,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "./Firebase";
 
 function App() {
@@ -28,12 +34,33 @@ function App() {
     }
   }
 
-  function addDelete(id) {
-    setNotes((prevNotes) => {
-      return prevNotes.filter((item, index) => {
-        return index !== id;
-      });
-    });
+  useEffect(() => {
+    async function fetchNotes() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "notes"));
+        const notesArray = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setNotes(notesArray);
+      } catch (error) {
+        console.error("Error loading notes:", error);
+      }
+    }
+    fetchNotes();
+  }, []);
+
+  async function addDelete(id) {
+    const prevNotes = notes;
+    setNotes((prev) => prev.filter((note) => note.id !== id));
+
+    try {
+      await deleteDoc(doc(db, "notes", id));
+    } catch (error) {
+      console.error("Delete error", error);
+      setNotes(prevNotes);
+      alert("Deleting in db failed. Changes are restored");
+    }
   }
 
   return (
